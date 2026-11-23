@@ -102,8 +102,17 @@ export abstract class BasePokemonType implements IPokemonType {
       originalSpriteSize,
     );
 
-    this.el.style.left = `${left}px`;
-    this.el.style.bottom = `${bottom}px`;
+    this._left = Math.min(
+      Math.max(left, 0),
+      Math.max(0, window.innerWidth - spriteSize),
+    );
+    this._bottom = Math.min(
+      Math.max(bottom, 0),
+      Math.max(0, window.innerHeight - spriteSize),
+    );
+
+    this.el.style.left = `${this._left}px`;
+    this.el.style.bottom = `${this._bottom}px`;
     this.el.style.width = `${spriteSize}px`;
     this.el.style.height = `${spriteSize}px`;
 
@@ -111,13 +120,13 @@ export abstract class BasePokemonType implements IPokemonType {
     this.el.style.maxWidth = 'none';
     this.el.style.maxHeight = 'none';
 
-    this.collision.style.left = `${left}px`;
-    this.collision.style.bottom = `${bottom}px`;
+    this.collision.style.left = `${this._left}px`;
+    this.collision.style.bottom = `${this._bottom}px`;
     this.collision.style.width = `${spriteSize}px`;
     this.collision.style.height = `${spriteSize}px`;
 
-    this.speech.style.left = `${left}px`;
-    this.speech.style.bottom = `${bottom + spriteSize}px`;
+    this.speech.style.left = `${this._left}px`;
+    this.speech.style.bottom = `${this._bottom + spriteSize}px`;
     this.hideSpeechBubble();
   }
 
@@ -155,19 +164,25 @@ export abstract class BasePokemonType implements IPokemonType {
   }
 
   positionBottom(bottom: number): void {
-    this._bottom = bottom;
+    this._bottom = Math.min(
+      Math.max(bottom, 0),
+      Math.max(0, window.innerHeight - this.width),
+    );
     this.el.style.bottom = `${this._bottom}px`;
     this.repositionAccompanyingElements();
   }
 
   positionLeft(left: number): void {
-    this._left = left;
+    this._left = Math.min(
+      Math.max(left, 0),
+      Math.max(0, window.innerWidth - this.width),
+    );
     this.el.style.left = `${this._left}px`;
     this.repositionAccompanyingElements();
   }
 
   get width(): number {
-    return this.el.width;
+    return this.calculateSpriteWidth(this._size, this._originalSpriteSize);
   }
 
   get floor(): number {

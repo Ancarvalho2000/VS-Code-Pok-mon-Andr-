@@ -158,6 +158,27 @@ export interface IState {
   nextFrame(): FrameResult;
 }
 
+function moveVertically(
+  pokemon: IPokemonType,
+  direction: number,
+  speed: number,
+): number {
+  const maxBottom = Math.max(0, window.innerHeight - pokemon.width);
+  const minBottom = Math.min(pokemon.floor, maxBottom);
+  let nextBottom = pokemon.bottom + direction * speed;
+
+  if (nextBottom > maxBottom) {
+    nextBottom = maxBottom;
+    direction = -1;
+  } else if (nextBottom < minBottom) {
+    nextBottom = minBottom;
+    direction = 1;
+  }
+
+  pokemon.positionBottom(nextBottom);
+  return direction;
+}
+
 class AbstractStaticState implements IState {
   label = States.sitIdle;
   idleCounter: number;
@@ -228,21 +249,30 @@ export class WalkRightState implements IState {
   pokemon: IPokemonType;
   spriteLabel = 'walk';
   horizontalDirection = HorizontalDirection.right;
-  leftBoundary: number;
   speedMultiplier = 1;
+  verticalDirection = Math.random() < 0.5 ? -1 : 1;
+  verticalSpeedMultiplier = 0.25 + Math.random() * 0.75;
   idleCounter: number;
   holdTime = 60;
 
   constructor(pokemon: IPokemonType) {
-    this.leftBoundary = Math.floor(window.innerWidth * 0.95);
     this.pokemon = pokemon;
     this.idleCounter = 0;
   }
 
   nextFrame(): FrameResult {
     this.idleCounter++;
+    const rightBoundary = Math.max(0, window.innerWidth - this.pokemon.width);
     this.pokemon.positionLeft(
-      this.pokemon.left + this.pokemon.speed * this.speedMultiplier,
+      Math.min(
+        rightBoundary,
+        this.pokemon.left + this.pokemon.speed * this.speedMultiplier,
+      ),
+    );
+    this.verticalDirection = moveVertically(
+      this.pokemon,
+      this.verticalDirection,
+      this.pokemon.speed * this.speedMultiplier * this.verticalSpeedMultiplier,
     );
 
     // Random chance to stop in the middle
@@ -250,10 +280,7 @@ export class WalkRightState implements IState {
       return FrameResult.stateComplete;
     }
 
-    if (
-      this.pokemon.isMoving &&
-      this.pokemon.left >= this.leftBoundary - this.pokemon.width
-    ) {
+    if (this.pokemon.isMoving && this.pokemon.left >= rightBoundary) {
       return FrameResult.stateComplete;
     } else if (!this.pokemon.isMoving && this.idleCounter > this.holdTime) {
       return FrameResult.stateComplete;
@@ -268,6 +295,8 @@ export class WalkLeftState implements IState {
   horizontalDirection = HorizontalDirection.left;
   pokemon: IPokemonType;
   speedMultiplier = 1;
+  verticalDirection = Math.random() < 0.5 ? -1 : 1;
+  verticalSpeedMultiplier = 0.25 + Math.random() * 0.75;
   idleCounter: number;
   holdTime = 60;
 
@@ -279,7 +308,15 @@ export class WalkLeftState implements IState {
   nextFrame(): FrameResult {
     this.idleCounter++;
     this.pokemon.positionLeft(
-      this.pokemon.left - this.pokemon.speed * this.speedMultiplier,
+      Math.max(
+        0,
+        this.pokemon.left - this.pokemon.speed * this.speedMultiplier,
+      ),
+    );
+    this.verticalDirection = moveVertically(
+      this.pokemon,
+      this.verticalDirection,
+      this.pokemon.speed * this.speedMultiplier * this.verticalSpeedMultiplier,
     );
 
     // Random chance to stop in the middle

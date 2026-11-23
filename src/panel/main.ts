@@ -450,6 +450,10 @@ function initCanvas() {
   }
   ctx.canvas.width = window.innerWidth;
   ctx.canvas.height = window.innerHeight;
+  allPokemon.pokemonCollection.forEach((pokemon) => {
+    pokemon.pokemon.positionLeft(pokemon.pokemon.left);
+    pokemon.pokemon.positionBottom(pokemon.pokemon.bottom);
+  });
 }
 
 // It cannot access the main VS Code APIs directly.
